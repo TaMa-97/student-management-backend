@@ -1,32 +1,57 @@
-version: '3'
+version: "3"
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/var/www/html
-    depends_on:
-      - db
-    environment:
-      DB_HOST: db
-      DB_DATABASE: student_management
-      DB_USERNAME: student_user
-      DB_PASSWORD: student_password
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: student-management-app
+        restart: unless-stopped
+        working_dir: /var/www/html
+        ports:
+            - "8000:8000"
+        volumes:
+            - .:/var/www/html
+            - /var/www/html/vendor
+        networks:
+            - student-management
+        depends_on:
+            db:
+                condition: service_healthy
 
-  db:
-    image: mysql:8.0
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_DATABASE: student_management
-      MYSQL_USER: student_user
-      MYSQL_PASSWORD: student_password
-      MYSQL_ROOT_PASSWORD: root_password
-    volumes:
-      - mysql_data:/var/lib/mysql
+    db:
+        image: mysql:8.0
+        container_name: student-management-db
+        restart: unless-stopped
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_DATABASE: student_management
+            MYSQL_USER: student_user
+            MYSQL_PASSWORD: student_password
+            MYSQL_ROOT_PASSWORD: root_password
+        volumes:
+            - mysql_data:/var/lib/mysql
+        networks:
+            - student-management
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "mysqladmin",
+                    "ping",
+                    "-h",
+                    "localhost",
+                    "-u",
+                    "root",
+                    "-p$$MYSQL_ROOT_PASSWORD",
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+networks:
+    student-management:
+        driver: bridge
 
 volumes:
-  mysql_data:
+    mysql_data:
