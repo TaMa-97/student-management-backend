@@ -17,3 +17,18 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# Docker関連
+/docker/data
+*.log
+.docker-sync
+docker-compose.override.yml
+
+# OS関連
+.DS_Store
+Thumbs.db
+
+# その他
+*.cache
+*.bak
+*.swp
